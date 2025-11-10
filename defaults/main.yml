@@ -1,0 +1,8 @@
+---
+# defaults file for oscap
+oscap_package: ''
+oscap_content: ''
+oscap_tailoring: ''
+oscap_profile: ''
+oscap_reports_store: false
+oscap_reports_store_path: 'files/scap-results/{{ ansible_date_time.iso8601_basic_short }}-{{ inventory_hostname }}/'

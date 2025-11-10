@@ -1,0 +1,33 @@
+---
+# tasks file for oscap
+- name: Explicitly gather facts for this role (if not already done)
+  ansible.builtin.setup:
+  when: ansible_distribution is not defined
+  tags:
+    - oscap
+    - oscap-prereqs
+    - oscap-scan
+
+- name: Include OS/Version-specific variables
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
+        - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+      skip: true
+  tags:
+    - oscap
+    - oscap-prereqs
+    - oscap-scan
+
+- name: Ensure prereqs are met
+  ansible.builtin.import_tasks: prereqs.yml
+  tags:
+    - oscap
+    - oscap-prereqs
+
+- name: Oscap | Scan systems for compliance
+  ansible.builtin.import_tasks: scan.yml
+  tags:
+    - oscap
+    - oscap-scan

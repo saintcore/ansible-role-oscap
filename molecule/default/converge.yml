@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Apply role under test
+      ansible.builtin.include_role:
+        name: saintcore.oscap
+      vars:
+        ansible_become: false

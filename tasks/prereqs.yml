@@ -1,0 +1,16 @@
+---
+- name: Ensure openscap is installed # noqa: package-latest
+  become: true
+  ansible.builtin.package:
+    name: "{{ (oscap_package | length > 0) | ternary(oscap_package, oscap_scanner_package) }}"
+    state: latest
+    update_cache: true
+
+- name: Ensure scap-security-guide is installed # noqa: package-latest
+  become: true
+  ansible.builtin.package:
+    name: "{{ oscap_guide_package }}"
+    state: latest
+  when:
+    - oscap_content | length == 0
+    - oscap_package | length == 0

@@ -1,0 +1,25 @@
+name: molecule
+on: [pull_request]
+
+jobs:
+  molecule:
+    name: molecule
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the codebase
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Python dependencies
+        run: pip3 install ansible-core molecule molecule-podman
+
+      - name: Run Molecule tests
+        run: molecule test
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'
+          ANSIBLE_ALLOW_BROKEN_CONDITIONALS: 'True'

@@ -1,0 +1,40 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: podman
+platforms:
+  - name: rockylinux-9
+    image: docker.io/geerlingguy/docker-rockylinux9-ansible:latest
+    pre_build_image: true
+    privileged: true
+    command: /sbin/init
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      - /tmp:/tmp
+    cgroupns_mode: host
+provisioner:
+  name: ansible
+verifier:
+  name: ansible
+scenario:
+  test_sequence:
+    - destroy
+    - syntax
+    - dependency
+    - create
+    - converge
+    - idempotence
+    - verify
+    - destroy
+  converge_sequence:
+    - dependency
+    - create
+    - converge
+  destroy_sequence:
+    - dependency
+    - destroy
+ansible:
+  cfg:
+    defaults:
+      deprecation_warnings: false
