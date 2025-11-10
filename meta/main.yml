@@ -1,0 +1,23 @@
+---
+galaxy_info:
+  role_name: oscap
+  author: saintcore
+  description: Performs OpenSCAP compliance scans on RHEL 9 and Rocky 9 systems.
+  license: AGPL-3.0-only
+  min_ansible_version: "2.1"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+
+  galaxy_tags:
+    - oscap
+    - scap
+    - ssg
+    - compliance
+    - hardening
+    - rhel9
+    - rocky9
+    - el9
+
+dependencies: []

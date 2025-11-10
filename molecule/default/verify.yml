@@ -1,0 +1,50 @@
+---
+# Purpose: assert that the instance really ended up in the expected state.
+# Molecule calls this playbook with `molecule verify`.
+- name: Verify
+  hosts: all
+  gather_facts: true
+  tasks:
+
+    - name: Include OS/Version-specific variables
+      ansible.builtin.include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+            - "{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
+            - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+          paths:
+            - ../../vars # Necessary to find files from molecule/default/
+          skip: true
+
+    - name: Get list of installed packages
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Assert openscap-scanner and scap-security-guide are installed
+      ansible.builtin.assert:
+        that:
+          - "'openscap-scanner' in ansible_facts.packages"
+          - "oscap_guide_package in ansible_facts.packages"
+        fail_msg: >
+          openscap-scanner or scap-security-guide package check failed
+          OS Family: {{ ansible_os_family }}, Dist: {{ ansible_distribution }}, Ver: {{ ansible_distribution_version }}.
+          Guide Package: {{ oscap_guide_package }}
+        quiet: true
+
+    - name: Check for OSCAP results files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: oscap_reports
+      loop:
+        - /var/tmp/ospp-results.xml
+        - /var/tmp/ospp-results.html
+
+    - name: Assert OSCAP results files exist
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+        fail_msg: "OSCAP report file '{{ item.item }}' was not found."
+        quiet: true
+      loop: "{{ oscap_reports.results }}"
+      loop_control:
+        label: "{{ item.item }}"

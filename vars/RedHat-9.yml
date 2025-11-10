@@ -1,0 +1,4 @@
+---
+oscap_guide_package: "scap-security-guide"
+oscap_guide_default_content: "/usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml"
+oscap_guide_default_profile: "xccdf_org.ssgproject.content_profile_cis_server_l1"
