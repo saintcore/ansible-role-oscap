@@ -2,3 +2,4 @@
 oscap_guide_package: "scap-security-guide"
 oscap_guide_default_content: "/usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml"
 oscap_guide_default_profile: "xccdf_org.ssgproject.content_profile_cis_server_l1"
+oscap_oval_scan: false # stale data, see https://forums.rockylinux.org/t/apollo-errata-you-a-ciq-ospo-request-for-comment/18102/31

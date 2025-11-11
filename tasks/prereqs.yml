@@ -1,16 +1,22 @@
 ---
-- name: Ensure openscap is installed # noqa: package-latest
+- name: Ensure openscap is installed
   become: true
   ansible.builtin.package:
     name: "{{ (oscap_package | length > 0) | ternary(oscap_package, oscap_scanner_package) }}"
-    state: latest
+    state: latest # noqa: package-latest
     update_cache: true
+  when: oscap_compliance_scan or oscap_oval_scan
 
-- name: Ensure scap-security-guide is installed # noqa: package-latest
+- name: Ensure scap-security-guide is installed
   become: true
   ansible.builtin.package:
     name: "{{ oscap_guide_package }}"
-    state: latest
-  when:
-    - oscap_content | length == 0
-    - oscap_package | length == 0
+    state: latest # noqa: package-latest
+  when: oscap_content | length == 0 and oscap_compliance_scan
+
+- name: Ensure bzip2 is installed if oval-scan is enabled
+  become: true
+  ansible.builtin.package:
+    name: "bzip2"
+    state: latest # noqa: package-latest
+  when: oscap_oval_scan

@@ -7,6 +7,7 @@
     - oscap
     - oscap-prereqs
     - oscap-scan
+    - oscap-oval
 
 - name: Include OS/Version-specific variables
   ansible.builtin.include_vars: "{{ item }}"
@@ -19,6 +20,7 @@
     - oscap
     - oscap-prereqs
     - oscap-scan
+    - oscap-oval
 
 - name: Ensure prereqs are met
   ansible.builtin.import_tasks: prereqs.yml
@@ -26,8 +28,16 @@
     - oscap
     - oscap-prereqs
 
-- name: Oscap | Scan systems for compliance
+- name: Scan systems for compliance
   ansible.builtin.import_tasks: scan.yml
   tags:
     - oscap
     - oscap-scan
+  when: oscap_compliance_scan
+
+- name: Scan systems with oval
+  ansible.builtin.import_tasks: oval.yml
+  tags:
+    - oscap
+    - oscap-oval
+  when: oscap_oval_scan
