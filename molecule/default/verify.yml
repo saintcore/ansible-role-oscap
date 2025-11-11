@@ -20,31 +20,66 @@
       ansible.builtin.package_facts:
         manager: auto
 
-    - name: Assert openscap-scanner and scap-security-guide are installed
+    # --- Package Checks ---
+
+    - name: Assert core scanner is installed
       ansible.builtin.assert:
         that:
           - "'openscap-scanner' in ansible_facts.packages"
-          - "oscap_guide_package in ansible_facts.packages"
-        fail_msg: >
-          openscap-scanner or scap-security-guide package check failed
-          OS Family: {{ ansible_os_family }}, Dist: {{ ansible_distribution }}, Ver: {{ ansible_distribution_version }}.
-          Guide Package: {{ oscap_guide_package }}
+        fail_msg: "openscap-scanner package was not found."
         quiet: true
+      when: oscap_compliance_scan or oscap_oval_scan
 
-    - name: Check for OSCAP results files
+    - name: Assert security guide package is installed
+      ansible.builtin.assert:
+        that:
+          - "oscap_guide_package in ansible_facts.packages"
+        fail_msg: "oscap_guide_package '{{ oscap_guide_package }}' was not found."
+        quiet: true
+      when: oscap_compliance_scan
+
+    - name: Assert bzip2 is installed
+      ansible.builtin.assert:
+        that:
+          - "'bzip2' in ansible_facts.packages"
+        fail_msg: "bzip2 package was not found (required for OVAL scan)."
+        quiet: true
+      when: oscap_oval_scan
+
+    # --- Compliance Report Check ---
+
+    - name: Check for OSCAP compliance results files
       ansible.builtin.stat:
         path: "{{ item }}"
-      register: oscap_reports
+      register: oscap_compliance_reports
       loop:
         - /var/tmp/ospp-results.xml
         - /var/tmp/ospp-results.html
+      when: oscap_compliance_scan
 
-    - name: Assert OSCAP results files exist
+    - name: Assert OSCAP compliance results files exist
       ansible.builtin.assert:
         that:
           - item.stat.exists
-        fail_msg: "OSCAP report file '{{ item.item }}' was not found."
+        fail_msg: "OSCAP compliance report file '{{ item.item }}' was not found."
         quiet: true
-      loop: "{{ oscap_reports.results }}"
+      loop: "{{ oscap_compliance_reports.results | default([]) }}"
       loop_control:
         label: "{{ item.item }}"
+      when: oscap_compliance_scan
+
+    # --- OVAL Report Check ---
+
+    - name: Check for OSCAP OVAL results file
+      ansible.builtin.stat:
+        path: /var/tmp/oval-results.html
+      register: oscap_oval_report
+      when: oscap_oval_scan
+
+    - name: Assert OSCAP OVAL results file exists
+      ansible.builtin.assert:
+        that:
+          - oscap_oval_report.stat.exists
+        fail_msg: "OSCAP OVAL report file '/var/tmp/oval-results.html' was not found."
+        quiet: true
+      when: oscap_oval_scan

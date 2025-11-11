@@ -1,0 +1,2 @@
+---
+oscap_cleanup: false # ensure cleanup does not run so we can use the files for verify
