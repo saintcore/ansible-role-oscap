@@ -13,6 +13,15 @@ platforms:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
       - /tmp:/tmp
     cgroupns_mode: host
+  - name: debian-12
+    image: docker.io/geerlingguy/docker-debian12-ansible:latest
+    pre_build_image: true
+    privileged: true
+    command: /sbin/init
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      - /tmp:/tmp
+    cgroupns_mode: host
 provisioner:
   name: ansible
 verifier:
