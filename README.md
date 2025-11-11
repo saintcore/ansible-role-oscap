@@ -40,6 +40,7 @@ These are the primary controls for the role, defined in `defaults/main.yml`.
 | **`oscap_oval_scan`** | If `true`, run the `oval` vulnerability scan. | `false` |
 | **`oscap_reports_store`** | If `true`, fetches the HTML reports from the target back to the Ansible controller. | `false` |
 | **`oscap_reports_store_path`** | Destination path on the **controller** for fetched reports. | 'files/scap-results/{{ ansible_date_time.iso82_basic_short }}-{{ inventory_hostname }}/' |
+| **`oscap_cleanup`** | If `true`, deletes all temporary files (reports and oval-content) from the target node after the scan. | `true` |
 
 ---
 

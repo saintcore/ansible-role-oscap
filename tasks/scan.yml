@@ -1,50 +1,66 @@
 ---
-- name: Copy content used for scan to target
-  ansible.builtin.copy:
-    src: '{{ oscap_content }}'
-    dest: /var/tmp/
-    owner: root
-    group: root
-    mode: '0644'
-  when: oscap_content | length != 0
-
-- name: Copy tailoring file
-  ansible.builtin.copy:
-    src: '{{ oscap_tailoring }}'
-    dest: /var/tmp/
-    owner: root
-    group: root
-    mode: '0644'
-  when: oscap_tailoring | length != 0
-
-- name: Run scan and check for errors
+- name: Run compliance scan and ensure cleanup
   block:
-    - name: Oscap | run scan
-      become: true
-      ansible.builtin.command: >-
-        oscap xccdf eval --fetch-remote-resources
-        --profile {{ oscap_profile | default(oscap_guide_default_profile, true) }}
-        {{ '--tailoring-file /var/tmp/' + oscap_tailoring if oscap_tailoring else '' }}
-        --results-arf /var/tmp/ospp-results.xml
-        --report /var/tmp/ospp-results.html
-        {{ '/var/tmp/' + oscap_content if oscap_content else oscap_guide_default_content }}
-      changed_when: false
-      no_log: true # so we have no error message with the state of all rules
-  rescue:
-    - name: Validation failed
-      ansible.builtin.debug:
-        msg: "Validation of at least one rule failed - please check html reports on client or  on defined remote-host for more details"
+    - name: Copy content used for scan to target
+      ansible.builtin.copy:
+        src: '{{ oscap_content }}'
+        dest: /var/tmp/
+        owner: root
+        group: root
+        mode: '0644'
+      when: oscap_content | length != 0
 
-- name: Store html-report on ansible-host
-  ansible.builtin.fetch:
-    src: /var/tmp/ospp-results.html
-    dest: "{{ oscap_reports_store_path }}"
-    flat: true
-  when: oscap_reports_store
+    - name: Copy tailoring file
+      ansible.builtin.copy:
+        src: '{{ oscap_tailoring }}'
+        dest: /var/tmp/
+        owner: root
+        group: root
+        mode: '0644'
+      when: oscap_tailoring | length != 0
 
-- name: Store xml-report on ansible-host
-  ansible.builtin.fetch:
-    src: /var/tmp/ospp-results.xml
-    dest: "{{ oscap_reports_store_path }}"
-    flat: true
-  when: oscap_reports_store
+    - name: Run scan and check for errors
+      block:
+        - name: Oscap | run scan
+          become: true
+          ansible.builtin.command: >-
+            oscap xccdf eval --fetch-remote-resources
+            --profile {{ oscap_profile | default(oscap_guide_default_profile, true) }}
+            {{ '--tailoring-file /var/tmp/' + (oscap_tailoring | basename) if oscap_tailoring else '' }}
+            --results-arf /var/tmp/ospp-results.xml
+            --report /var/tmp/ospp-results.html
+            {{ '/var/tmp/' + (oscap_content | basename) if oscap_content else oscap_guide_default_content }}
+          changed_when: false
+          no_log: true # so we have no error message with the state of all rules
+      rescue:
+        - name: Validation failed
+          ansible.builtin.debug:
+            msg: "Validation of at least one rule failed - please check html reports on client or on defined remote-host for more details"
+
+    - name: Store html-report on ansible-host
+      ansible.builtin.fetch:
+        src: /var/tmp/ospp-results.html
+        dest: "{{ oscap_reports_store_path }}"
+        flat: true
+      when: oscap_reports_store
+      tags:
+        - molecule-idempotence-notest
+
+    - name: Store xml-report on ansible-host
+      ansible.builtin.fetch:
+        src: /var/tmp/ospp-results.xml
+        dest: "{{ oscap_reports_store_path }}"
+        flat: true
+      when: oscap_reports_store
+      tags:
+        - molecule-idempotence-notest
+
+  always:
+    - name: Clean up static scan reports
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/var/tmp/ospp-results.html"
+        - "/var/tmp/ospp-results.xml"
+      when: oscap_cleanup
