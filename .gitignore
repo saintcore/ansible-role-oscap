@@ -5,6 +5,7 @@
 .molecule/
 .cache/
 *.retry
+molecule/default/files
 
 # Python
 __pycache__/
