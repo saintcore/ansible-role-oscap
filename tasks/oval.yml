@@ -1,0 +1,43 @@
+---
+- name: Perform OVAL scan and ensure cleanup
+  block:
+    - name: Download OVAL definitions
+      ansible.builtin.get_url:
+        url: "{{ oscap_oval_def_url }}"
+        dest: "/var/tmp/oval-definitions.xml.bz2"
+        mode: '0644'
+
+    - name: Decompress OVAL definitions
+      ansible.builtin.command:
+        cmd: "bzip2 -d -f -k /var/tmp/oval-definitions.xml.bz2"
+      changed_when: true
+      tags:
+        - molecule-idempotence-notest
+
+    - name: Run OVAL scan
+      become: true
+      ansible.builtin.command:
+        cmd: "oscap oval eval --report /var/tmp/oval-results.html /var/tmp/oval-definitions.xml"
+      register: scan_result
+      failed_when: scan_result.rc != 0 and scan_result.rc != 2
+      changed_when: false
+
+    - name: Store html-report on ansible-host
+      ansible.builtin.fetch:
+        src: /var/tmp/oval-results.html
+        dest: "{{ oscap_reports_store_path }}"
+        flat: true
+      when: oscap_reports_store
+      tags:
+        - molecule-idempotence-notest
+
+  always:
+    - name: Clean up OVAL scan files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/var/tmp/oval-definitions.xml.bz2"  # The downloaded file
+        - "/var/tmp/oval-definitions.xml"    # The decompressed file
+        - "/var/tmp/oval-results.html"       # The scan report
+      when: oscap_cleanup

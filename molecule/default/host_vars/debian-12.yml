@@ -1,0 +1,7 @@
+---
+# file: host_vars/debian-12.yml
+oscap_compliance_scan: false
+oscap_guide_package: ssg-debian
+oscap_oval_scan: true
+oscap_oval_def_url: "https://www.debian.org/security/oval/oval-definitions-bookworm.xml.bz2"
+oscap_reports_store: true

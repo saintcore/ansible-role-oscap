@@ -1,0 +1,3 @@
+---
+oscap_compliance_scan: true
+oscap_reports_store: true

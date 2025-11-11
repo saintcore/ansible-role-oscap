@@ -4,5 +4,8 @@ oscap_package: ''
 oscap_content: ''
 oscap_tailoring: ''
 oscap_profile: ''
+oscap_cleanup: true
+oscap_compliance_scan: true
 oscap_reports_store: false
 oscap_reports_store_path: 'files/scap-results/{{ ansible_date_time.iso8601_basic_short }}-{{ inventory_hostname }}/'
+oscap_oval_scan: false
